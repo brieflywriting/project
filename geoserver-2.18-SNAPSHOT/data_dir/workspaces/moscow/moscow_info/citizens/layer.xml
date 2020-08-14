@@ -1,0 +1,17 @@
+<layer>
+  <name>citizens</name>
+  <id>LayerInfoImpl--283494f7:1738103f21f:-7ff9</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-30b4e9a6:1738b11f60b:-7ffa</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--283494f7:1738103f21f:-7ffa</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2020-07-24 13:45:47.808 UTC</dateCreated>
+  <dateModified>2020-07-26 14:26:22.869 UTC</dateModified>
+</layer>

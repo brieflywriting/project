@@ -1,0 +1,21 @@
+{
+  "name": "name",
+  "dependencies": {
+    "jsts": "^2.5.0",
+    "node-powershell": "^4.0.0",
+    "ol": "^6.3.1"
+  },
+  "devDependencies": {
+    "parcel": "1.11.0",
+    "parcel-bundler": "^1.12.4"
+  },
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build --experimental-scope-hoisting --public-url . index.html"
+  },
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

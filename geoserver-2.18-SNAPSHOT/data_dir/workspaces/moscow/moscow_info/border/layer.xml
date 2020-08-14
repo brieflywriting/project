@@ -1,0 +1,17 @@
+<layer>
+  <name>border</name>
+  <id>LayerInfoImpl--283494f7:1738103f21f:-7ffb</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-30b4e9a6:1738b11f60b:-7ffc</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--283494f7:1738103f21f:-7ffc</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2020-07-24 13:45:16.571 UTC</dateCreated>
+  <dateModified>2020-07-26 14:24:14.491 UTC</dateModified>
+</layer>
