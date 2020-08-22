@@ -1,0 +1,10 @@
+<userGroupService>
+  <id>-3acf1bf0:173fb516171:-7fff</id>
+  <name>User</name>
+  <className>org.geoserver.security.xml.XMLUserGroupService</className>
+  <fileName>basicuser</fileName>
+  <checkInterval>0</checkInterval>
+  <validating>false</validating>
+  <passwordEncoderName>emptyPasswordEncoder</passwordEncoderName>
+  <passwordPolicyName>default</passwordPolicyName>
+</userGroupService>

@@ -1,6 +1,7 @@
 {
   "name": "name",
   "dependencies": {
+    "heatmap.js": "^2.0.5",
     "jsts": "^2.5.0",
     "node-powershell": "^4.0.0",
     "ol": "^6.3.1"

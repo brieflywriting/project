@@ -1,13 +1,10 @@
 import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import TileWMS from 'ol/source/TileWMS';
-import 'ol/ol.css';
 import GeoJSON from 'ol/format/GeoJSON';
 import LinearRing from 'ol/geom/LinearRing';
+import Map from 'ol/Map';
+import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
+import View from 'ol/View';
 import {
   LineString,
   MultiLineString,
@@ -16,8 +13,11 @@ import {
   Point,
   Polygon,
 } from 'ol/geom';
+import TileLayer from 'ol/layer/Tile';
+import TileWMS from 'ol/source/TileWMS';
 import { Vector as VectorLayer} from 'ol/layer';
 import {fromLonLat} from 'ol/proj';
+import jsts from 'jsts';
 
 
 
@@ -25,14 +25,14 @@ import {fromLonLat} from 'ol/proj';
 
 //#region jsts buffer import 
 var source2 = new VectorSource();
-fetch('./data/geojson/citizens.geojson')
+fetch('data/geojson/citizens.geojson')
   .then(function (response) {
     return response.json();
   })
   .then(function (json) {
     var format = new GeoJSON();
     var features = format.readFeatures(json, {
-      featureProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:4863',
     });
 
     var parser = new jsts.io.OL3Parser();
@@ -62,7 +62,7 @@ fetch('./data/geojson/citizens.geojson')
   });
   //#endregion
 //#region  Исполнение в консоли забития в postgis shp
-  const shell = require('node-powershell');
+  /*const shell = require('node-powershell');
   let ps = new shell({
     executionPolicy: 'Bypass',
     noProfile: true
@@ -74,7 +74,7 @@ fetch('./data/geojson/citizens.geojson')
   }).catch(err => {
     console.log(err);
     ps.dispose();
-  });
+  });*/
   //#endregion
 var layers = [
   new TileLayer({
@@ -107,11 +107,23 @@ var layers = [
       url: 'http://localhost:8080/geoserver/moscow/wms',
       params: {'LAYERS': 'moscow:poi', 'TILED': true},
       serverType: 'geoserver',
+      // Countries have transparency, so do not fade tiles:task2_1
+      transition: 0
+    })
+  }),
+  new TileLayer({
+   
+    source: new TileWMS({
+      url: 'http://localhost:8080/geoserver/moscow/wms',
+      params: {'LAYERS': 'moscow:task2_1', 'TILED': true},
+      serverType: 'geoserver',
       // Countries have transparency, so do not fade tiles:
       transition: 0
     })
   })
 ];
+
+
 
 var map = new Map({
   layers: layers,

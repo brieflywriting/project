@@ -1,0 +1,16 @@
+<layer>
+  <name>task2_1</name>
+  <id>LayerInfoImpl--33554fe8:17415a91b3b:-7ff3</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--570ae188:124761b8d78:-7fdf</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--33554fe8:17415a91b3b:-7ff4</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2020-08-22 13:20:12.334 UTC</dateCreated>
+</layer>

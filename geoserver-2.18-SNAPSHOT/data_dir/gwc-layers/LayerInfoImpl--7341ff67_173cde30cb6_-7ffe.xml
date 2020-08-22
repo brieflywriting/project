@@ -9,10 +9,26 @@
   </mimeFormats>
   <gridSubsets>
     <gridSubset>
-      <gridSetName>EPSG:4326</gridSetName>
+      <gridSetName>EPSG:900913</gridSetName>
+      <extent>
+        <coords>
+          <double>1401605.3975343558</double>
+          <double>-1010677.8100020535</double>
+          <double>1401605.483612411</double>
+          <double>-1010677.7518777421</double>
+        </coords>
+      </extent>
     </gridSubset>
     <gridSubset>
-      <gridSetName>EPSG:900913</gridSetName>
+      <gridSetName>EPSG:4326</gridSetName>
+      <extent>
+        <coords>
+          <double>12.590835509095298</double>
+          <double>-9.041314884568568</double>
+          <double>12.590836282347622</double>
+          <double>-9.041314368916435</double>
+        </coords>
+      </extent>
     </gridSubset>
   </gridSubsets>
   <metaWidthHeight>
@@ -26,7 +42,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>point</defaultStyle>
+      <defaultStyle>moscow:poi</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>
