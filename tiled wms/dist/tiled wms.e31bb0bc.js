@@ -12318,7 +12318,968 @@ function writePolygonGeometry(geometry, opt_options) {
 
 var _default = GeoJSON;
 exports.default = _default;
-},{"../asserts.js":"node_modules/ol/asserts.js","../Feature.js":"node_modules/ol/Feature.js","./Feature.js":"node_modules/ol/format/Feature.js","./JSONFeature.js":"node_modules/ol/format/JSONFeature.js","../geom/GeometryCollection.js":"node_modules/ol/geom/GeometryCollection.js","../geom/LineString.js":"node_modules/ol/geom/LineString.js","../geom/MultiLineString.js":"node_modules/ol/geom/MultiLineString.js","../geom/MultiPoint.js":"node_modules/ol/geom/MultiPoint.js","../geom/MultiPolygon.js":"node_modules/ol/geom/MultiPolygon.js","../geom/Point.js":"node_modules/ol/geom/Point.js","../geom/Polygon.js":"node_modules/ol/geom/Polygon.js","../obj.js":"node_modules/ol/obj.js","../proj.js":"node_modules/ol/proj.js","../geom/GeometryType.js":"node_modules/ol/geom/GeometryType.js"}],"node_modules/ol/CollectionEventType.js":[function(require,module,exports) {
+},{"../asserts.js":"node_modules/ol/asserts.js","../Feature.js":"node_modules/ol/Feature.js","./Feature.js":"node_modules/ol/format/Feature.js","./JSONFeature.js":"node_modules/ol/format/JSONFeature.js","../geom/GeometryCollection.js":"node_modules/ol/geom/GeometryCollection.js","../geom/LineString.js":"node_modules/ol/geom/LineString.js","../geom/MultiLineString.js":"node_modules/ol/geom/MultiLineString.js","../geom/MultiPoint.js":"node_modules/ol/geom/MultiPoint.js","../geom/MultiPolygon.js":"node_modules/ol/geom/MultiPolygon.js","../geom/Point.js":"node_modules/ol/geom/Point.js","../geom/Polygon.js":"node_modules/ol/geom/Polygon.js","../obj.js":"node_modules/ol/obj.js","../proj.js":"node_modules/ol/proj.js","../geom/GeometryType.js":"node_modules/ol/geom/GeometryType.js"}],"node_modules/elm-pep/dist/elm-pep.js":[function(require,module,exports) {
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/
+// Variable to hold current primary touch event identifier.
+// iOS needs this since it does not attribute
+// identifier 0 to primary touch event.
+var primaryTouchId = null;
+// Variable to hold mouse pointer captures.
+var mouseCaptureTarget = null;
+if (!("PointerEvent" in window)) {
+    // Define {set,release}PointerCapture
+    definePointerCapture();
+    // Create Pointer polyfill from mouse events only on non-touch device
+    if (!("TouchEvent" in window)) {
+        addMouseToPointerListener(document, "mousedown", "pointerdown");
+        addMouseToPointerListener(document, "mousemove", "pointermove");
+        addMouseToPointerListener(document, "mouseup", "pointerup");
+    }
+    // Define Pointer polyfill from touch events
+    addTouchToPointerListener(document, "touchstart", "pointerdown");
+    addTouchToPointerListener(document, "touchmove", "pointermove");
+    addTouchToPointerListener(document, "touchend", "pointerup");
+}
+// Function defining {set,release}PointerCapture from {set,releas}Capture
+function definePointerCapture() {
+    Element.prototype.setPointerCapture = Element.prototype.setCapture;
+    Element.prototype.releasePointerCapture = Element.prototype.releaseCapture;
+}
+// Function converting a Mouse event to a Pointer event.
+function addMouseToPointerListener(target, mouseType, pointerType) {
+    target.addEventListener(mouseType, function (mouseEvent) {
+        var pointerEvent = new MouseEvent(pointerType, mouseEvent);
+        pointerEvent.pointerId = 1;
+        pointerEvent.isPrimary = true;
+        pointerEvent.pointerType = "mouse";
+        pointerEvent.width = 1;
+        pointerEvent.height = 1;
+        pointerEvent.tiltX = 0;
+        pointerEvent.tiltY = 0;
+        // pressure is 0.5 if a button is holded
+        "buttons" in mouseEvent && mouseEvent.buttons !== 0
+            ? (pointerEvent.pressure = 0.5)
+            : (pointerEvent.pressure = 0);
+        // if already capturing mouse event, transfer target
+        // and don't forget implicit release on mouseup.
+        var target = mouseEvent.target;
+        if (mouseCaptureTarget !== null) {
+            target = mouseCaptureTarget;
+            if (mouseType === "mouseup") {
+                mouseCaptureTarget = null;
+            }
+        }
+        target.dispatchEvent(pointerEvent);
+        if (pointerEvent.defaultPrevented) {
+            mouseEvent.preventDefault();
+        }
+    });
+}
+// Function converting a Touch event to a Pointer event.
+function addTouchToPointerListener(target, touchType, pointerType) {
+    target.addEventListener(touchType, function (touchEvent) {
+        var changedTouches = touchEvent.changedTouches;
+        var nbTouches = changedTouches.length;
+        for (var t = 0; t < nbTouches; t++) {
+            var pointerEvent = new CustomEvent(pointerType, {
+                bubbles: true,
+                cancelable: true
+            });
+            pointerEvent.ctrlKey = touchEvent.ctrlKey;
+            pointerEvent.shiftKey = touchEvent.shiftKey;
+            pointerEvent.altKey = touchEvent.altKey;
+            pointerEvent.metaKey = touchEvent.metaKey;
+            var touch = changedTouches.item(t);
+            pointerEvent.clientX = touch.clientX;
+            pointerEvent.clientY = touch.clientY;
+            pointerEvent.screenX = touch.screenX;
+            pointerEvent.screenY = touch.screenY;
+            pointerEvent.pageX = touch.pageX;
+            pointerEvent.pageY = touch.pageY;
+            var rect = touch.target.getBoundingClientRect();
+            pointerEvent.offsetX = touch.clientX - rect.left;
+            pointerEvent.offsetY = touch.clientY - rect.top;
+            pointerEvent.pointerId = 1 + touch.identifier;
+            // Default values for standard MouseEvent fields.
+            pointerEvent.button = 0;
+            pointerEvent.buttons = 1;
+            pointerEvent.movementX = 0;
+            pointerEvent.movementY = 0;
+            pointerEvent.region = null;
+            pointerEvent.relatedTarget = null;
+            pointerEvent.x = pointerEvent.clientX;
+            pointerEvent.y = pointerEvent.clientY;
+            // Pointer event details
+            pointerEvent.pointerType = "touch";
+            pointerEvent.width = 1;
+            pointerEvent.height = 1;
+            pointerEvent.tiltX = 0;
+            pointerEvent.tiltY = 0;
+            pointerEvent.pressure = 1;
+            // First touch is the primary pointer event.
+            if (touchType === "touchstart" && primaryTouchId === null) {
+                primaryTouchId = touch.identifier;
+            }
+            pointerEvent.isPrimary = touch.identifier === primaryTouchId;
+            // If first touch ends, reset primary touch id.
+            if (touchType === "touchend" && pointerEvent.isPrimary) {
+                primaryTouchId = null;
+            }
+            touchEvent.target.dispatchEvent(pointerEvent);
+            if (pointerEvent.defaultPrevented) {
+                touchEvent.preventDefault();
+            }
+        }
+    });
+}
+
+},{}],"node_modules/ol/pointer/EventType.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+/**
+ * @module ol/pointer/EventType
+ */
+
+/**
+ * Constants for event names.
+ * @enum {string}
+ */
+var _default = {
+  POINTERMOVE: 'pointermove',
+  POINTERDOWN: 'pointerdown',
+  POINTERUP: 'pointerup',
+  POINTEROVER: 'pointerover',
+  POINTEROUT: 'pointerout',
+  POINTERENTER: 'pointerenter',
+  POINTERLEAVE: 'pointerleave',
+  POINTERCANCEL: 'pointercancel'
+};
+exports.default = _default;
+},{}],"node_modules/ol/MapEventType.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+/**
+ * @module ol/MapEventType
+ */
+
+/**
+ * @enum {string}
+ */
+var _default = {
+  /**
+   * Triggered after a map frame is rendered.
+   * @event module:ol/MapEvent~MapEvent#postrender
+   * @api
+   */
+  POSTRENDER: 'postrender',
+
+  /**
+   * Triggered when the map starts moving.
+   * @event module:ol/MapEvent~MapEvent#movestart
+   * @api
+   */
+  MOVESTART: 'movestart',
+
+  /**
+   * Triggered after the map is moved.
+   * @event module:ol/MapEvent~MapEvent#moveend
+   * @api
+   */
+  MOVEEND: 'moveend'
+};
+exports.default = _default;
+},{}],"node_modules/ol/has.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.PASSIVE_EVENT_LISTENERS = exports.IMAGE_DECODE = exports.WORKER_OFFSCREEN_CANVAS = exports.DEVICE_PIXEL_RATIO = exports.MAC = exports.WEBKIT = exports.SAFARI = exports.FIREFOX = void 0;
+
+/**
+ * @module ol/has
+ */
+var ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+/**
+ * User agent string says we are dealing with Firefox as browser.
+ * @type {boolean}
+ */
+
+var FIREFOX = ua.indexOf('firefox') !== -1;
+/**
+ * User agent string says we are dealing with Safari as browser.
+ * @type {boolean}
+ */
+
+exports.FIREFOX = FIREFOX;
+var SAFARI = ua.indexOf('safari') !== -1 && ua.indexOf('chrom') == -1;
+/**
+ * User agent string says we are dealing with a WebKit engine.
+ * @type {boolean}
+ */
+
+exports.SAFARI = SAFARI;
+var WEBKIT = ua.indexOf('webkit') !== -1 && ua.indexOf('edge') == -1;
+/**
+ * User agent string says we are dealing with a Mac as platform.
+ * @type {boolean}
+ */
+
+exports.WEBKIT = WEBKIT;
+var MAC = ua.indexOf('macintosh') !== -1;
+/**
+ * The ratio between physical pixels and device-independent pixels
+ * (dips) on the device (`window.devicePixelRatio`).
+ * @const
+ * @type {number}
+ * @api
+ */
+
+exports.MAC = MAC;
+var DEVICE_PIXEL_RATIO = typeof devicePixelRatio !== 'undefined' ? devicePixelRatio : 1;
+/**
+ * The execution context is a worker with OffscreenCanvas available.
+ * @const
+ * @type {boolean}
+ */
+
+exports.DEVICE_PIXEL_RATIO = DEVICE_PIXEL_RATIO;
+var WORKER_OFFSCREEN_CANVAS = typeof WorkerGlobalScope !== 'undefined' && typeof OffscreenCanvas !== 'undefined' && self instanceof WorkerGlobalScope; //eslint-disable-line
+
+/**
+ * Image.prototype.decode() is supported.
+ * @type {boolean}
+ */
+
+exports.WORKER_OFFSCREEN_CANVAS = WORKER_OFFSCREEN_CANVAS;
+var IMAGE_DECODE = typeof Image !== 'undefined' && Image.prototype.decode;
+/**
+ * @type {boolean}
+ */
+
+exports.IMAGE_DECODE = IMAGE_DECODE;
+
+var PASSIVE_EVENT_LISTENERS = function () {
+  var passive = false;
+
+  try {
+    var options = Object.defineProperty({}, 'passive', {
+      get: function () {
+        passive = true;
+      }
+    });
+    window.addEventListener('_', null, options);
+    window.removeEventListener('_', null, options);
+  } catch (error) {// passive not supported
+  }
+
+  return passive;
+}();
+
+exports.PASSIVE_EVENT_LISTENERS = PASSIVE_EVENT_LISTENERS;
+},{}],"node_modules/ol/dom.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.createCanvasContext2D = createCanvasContext2D;
+exports.outerWidth = outerWidth;
+exports.outerHeight = outerHeight;
+exports.replaceNode = replaceNode;
+exports.removeNode = removeNode;
+exports.removeChildren = removeChildren;
+exports.replaceChildren = replaceChildren;
+
+var _has = require("./has.js");
+
+/**
+ * @module ol/dom
+ */
+//FIXME Move this function to the canvas module
+
+/**
+ * Create an html canvas element and returns its 2d context.
+ * @param {number=} opt_width Canvas width.
+ * @param {number=} opt_height Canvas height.
+ * @param {Array<HTMLCanvasElement>=} opt_canvasPool Canvas pool to take existing canvas from.
+ * @return {CanvasRenderingContext2D} The context.
+ */
+function createCanvasContext2D(opt_width, opt_height, opt_canvasPool) {
+  var canvas = opt_canvasPool && opt_canvasPool.length ? opt_canvasPool.shift() : _has.WORKER_OFFSCREEN_CANVAS ? new OffscreenCanvas(opt_width || 300, opt_height || 300) : document.createElement('canvas');
+
+  if (opt_width) {
+    canvas.width = opt_width;
+  }
+
+  if (opt_height) {
+    canvas.height = opt_height;
+  } //FIXME Allow OffscreenCanvasRenderingContext2D as return type
+
+
+  return (
+    /** @type {CanvasRenderingContext2D} */
+    canvas.getContext('2d')
+  );
+}
+/**
+ * Get the current computed width for the given element including margin,
+ * padding and border.
+ * Equivalent to jQuery's `$(el).outerWidth(true)`.
+ * @param {!HTMLElement} element Element.
+ * @return {number} The width.
+ */
+
+
+function outerWidth(element) {
+  var width = element.offsetWidth;
+  var style = getComputedStyle(element);
+  width += parseInt(style.marginLeft, 10) + parseInt(style.marginRight, 10);
+  return width;
+}
+/**
+ * Get the current computed height for the given element including margin,
+ * padding and border.
+ * Equivalent to jQuery's `$(el).outerHeight(true)`.
+ * @param {!HTMLElement} element Element.
+ * @return {number} The height.
+ */
+
+
+function outerHeight(element) {
+  var height = element.offsetHeight;
+  var style = getComputedStyle(element);
+  height += parseInt(style.marginTop, 10) + parseInt(style.marginBottom, 10);
+  return height;
+}
+/**
+ * @param {Node} newNode Node to replace old node
+ * @param {Node} oldNode The node to be replaced
+ */
+
+
+function replaceNode(newNode, oldNode) {
+  var parent = oldNode.parentNode;
+
+  if (parent) {
+    parent.replaceChild(newNode, oldNode);
+  }
+}
+/**
+ * @param {Node} node The node to remove.
+ * @returns {Node} The node that was removed or null.
+ */
+
+
+function removeNode(node) {
+  return node && node.parentNode ? node.parentNode.removeChild(node) : null;
+}
+/**
+ * @param {Node} node The node to remove the children from.
+ */
+
+
+function removeChildren(node) {
+  while (node.lastChild) {
+    node.removeChild(node.lastChild);
+  }
+}
+/**
+ * Transform the children of a parent node so they match the
+ * provided list of children.  This function aims to efficiently
+ * remove, add, and reorder child nodes while maintaining a simple
+ * implementation (it is not guaranteed to minimize DOM operations).
+ * @param {Node} node The parent node whose children need reworking.
+ * @param {Array<Node>} children The desired children.
+ */
+
+
+function replaceChildren(node, children) {
+  var oldChildren = node.childNodes;
+
+  for (var i = 0; true; ++i) {
+    var oldChild = oldChildren[i];
+    var newChild = children[i]; // check if our work is done
+
+    if (!oldChild && !newChild) {
+      break;
+    } // check if children match
+
+
+    if (oldChild === newChild) {
+      continue;
+    } // check if a new child needs to be added
+
+
+    if (!oldChild) {
+      node.appendChild(newChild);
+      continue;
+    } // check if an old child needs to be removed
+
+
+    if (!newChild) {
+      node.removeChild(oldChild);
+      --i;
+      continue;
+    } // reorder
+
+
+    node.insertBefore(newChild, oldChild);
+  }
+}
+},{"./has.js":"node_modules/ol/has.js"}],"node_modules/ol/control/Control.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _functions = require("../functions.js");
+
+var _MapEventType = _interopRequireDefault(require("../MapEventType.js"));
+
+var _Object = _interopRequireDefault(require("../Object.js"));
+
+var _dom = require("../dom.js");
+
+var _events = require("../events.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var __extends = void 0 && (void 0).__extends || function () {
+  var extendStatics = function (d, b) {
+    extendStatics = Object.setPrototypeOf || {
+      __proto__: []
+    } instanceof Array && function (d, b) {
+      d.__proto__ = b;
+    } || function (d, b) {
+      for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    };
+
+    return extendStatics(d, b);
+  };
+
+  return function (d, b) {
+    extendStatics(d, b);
+
+    function __() {
+      this.constructor = d;
+    }
+
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+  };
+}();
+/**
+ * @module ol/control/Control
+ */
+
+
+/**
+ * @typedef {Object} Options
+ * @property {HTMLElement} [element] The element is the control's
+ * container element. This only needs to be specified if you're developing
+ * a custom control.
+ * @property {function(import("../MapEvent.js").default)} [render] Function called when
+ * the control should be re-rendered. This is called in a `requestAnimationFrame`
+ * callback.
+ * @property {HTMLElement|string} [target] Specify a target if you want
+ * the control to be rendered outside of the map's viewport.
+ */
+
+/**
+ * @classdesc
+ * A control is a visible widget with a DOM element in a fixed position on the
+ * screen. They can involve user input (buttons), or be informational only;
+ * the position is determined using CSS. By default these are placed in the
+ * container with CSS class name `ol-overlaycontainer-stopevent`, but can use
+ * any outside DOM element.
+ *
+ * This is the base class for controls. You can use it for simple custom
+ * controls by creating the element with listeners, creating an instance:
+ * ```js
+ * var myControl = new Control({element: myElement});
+ * ```
+ * and then adding this to the map.
+ *
+ * The main advantage of having this as a control rather than a simple separate
+ * DOM element is that preventing propagation is handled for you. Controls
+ * will also be objects in a {@link module:ol/Collection~Collection}, so you can use their methods.
+ *
+ * You can also extend this base for your own control class. See
+ * examples/custom-controls for an example of how to do this.
+ *
+ * @api
+ */
+var Control =
+/** @class */
+function (_super) {
+  __extends(Control, _super);
+  /**
+   * @param {Options} options Control options.
+   */
+
+
+  function Control(options) {
+    var _this = _super.call(this) || this;
+    /**
+     * @protected
+     * @type {HTMLElement}
+     */
+
+
+    _this.element = options.element ? options.element : null;
+    /**
+     * @private
+     * @type {HTMLElement}
+     */
+
+    _this.target_ = null;
+    /**
+     * @private
+     * @type {import("../PluggableMap.js").default}
+     */
+
+    _this.map_ = null;
+    /**
+     * @protected
+     * @type {!Array<import("../events.js").EventsKey>}
+     */
+
+    _this.listenerKeys = [];
+    /**
+     * @private
+     * @type {function(import("../MapEvent.js").default): void}
+     */
+
+    _this.render_ = options.render ? options.render : _functions.VOID;
+
+    if (options.target) {
+      _this.setTarget(options.target);
+    }
+
+    return _this;
+  }
+  /**
+   * @inheritDoc
+   */
+
+
+  Control.prototype.disposeInternal = function () {
+    (0, _dom.removeNode)(this.element);
+
+    _super.prototype.disposeInternal.call(this);
+  };
+  /**
+   * Get the map associated with this control.
+   * @return {import("../PluggableMap.js").default} Map.
+   * @api
+   */
+
+
+  Control.prototype.getMap = function () {
+    return this.map_;
+  };
+  /**
+   * Remove the control from its current map and attach it to the new map.
+   * Subclasses may set up event handlers to get notified about changes to
+   * the map here.
+   * @param {import("../PluggableMap.js").default} map Map.
+   * @api
+   */
+
+
+  Control.prototype.setMap = function (map) {
+    if (this.map_) {
+      (0, _dom.removeNode)(this.element);
+    }
+
+    for (var i = 0, ii = this.listenerKeys.length; i < ii; ++i) {
+      (0, _events.unlistenByKey)(this.listenerKeys[i]);
+    }
+
+    this.listenerKeys.length = 0;
+    this.map_ = map;
+
+    if (this.map_) {
+      var target = this.target_ ? this.target_ : map.getOverlayContainerStopEvent();
+      target.appendChild(this.element);
+
+      if (this.render !== _functions.VOID) {
+        this.listenerKeys.push((0, _events.listen)(map, _MapEventType.default.POSTRENDER, this.render, this));
+      }
+
+      map.render();
+    }
+  };
+  /**
+   * Update the projection. Rendering of the coordinates is done in
+   * `handleMouseMove` and `handleMouseUp`.
+   * @param {import("../MapEvent.js").default} mapEvent Map event.
+   * @api
+   */
+
+
+  Control.prototype.render = function (mapEvent) {
+    this.render_.call(this, mapEvent);
+  };
+  /**
+   * This function is used to set a target element for the control. It has no
+   * effect if it is called after the control has been added to the map (i.e.
+   * after `setMap` is called on the control). If no `target` is set in the
+   * options passed to the control constructor and if `setTarget` is not called
+   * then the control is added to the map's overlay container.
+   * @param {HTMLElement|string} target Target.
+   * @api
+   */
+
+
+  Control.prototype.setTarget = function (target) {
+    this.target_ = typeof target === 'string' ? document.getElementById(target) : target;
+  };
+
+  return Control;
+}(_Object.default);
+
+var _default = Control;
+exports.default = _default;
+},{"../functions.js":"node_modules/ol/functions.js","../MapEventType.js":"node_modules/ol/MapEventType.js","../Object.js":"node_modules/ol/Object.js","../dom.js":"node_modules/ol/dom.js","../events.js":"node_modules/ol/events.js"}],"node_modules/ol/control/MousePosition.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.render = render;
+exports.default = void 0;
+
+require("elm-pep");
+
+var _events = require("../events.js");
+
+var _EventType = _interopRequireDefault(require("../pointer/EventType.js"));
+
+var _Object = require("../Object.js");
+
+var _Control = _interopRequireDefault(require("./Control.js"));
+
+var _proj = require("../proj.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * @module ol/control/MousePosition
+ */
+var __extends = void 0 && (void 0).__extends || function () {
+  var extendStatics = function (d, b) {
+    extendStatics = Object.setPrototypeOf || {
+      __proto__: []
+    } instanceof Array && function (d, b) {
+      d.__proto__ = b;
+    } || function (d, b) {
+      for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    };
+
+    return extendStatics(d, b);
+  };
+
+  return function (d, b) {
+    extendStatics(d, b);
+
+    function __() {
+      this.constructor = d;
+    }
+
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+  };
+}();
+
+/**
+ * @type {string}
+ */
+var PROJECTION = 'projection';
+/**
+ * @type {string}
+ */
+
+var COORDINATE_FORMAT = 'coordinateFormat';
+/**
+ * @typedef {Object} Options
+ * @property {string} [className='ol-mouse-position'] CSS class name.
+ * @property {import("../coordinate.js").CoordinateFormat} [coordinateFormat] Coordinate format.
+ * @property {import("../proj.js").ProjectionLike} [projection] Projection. Default is the view projection.
+ * @property {function(import("../MapEvent.js").default)} [render] Function called when the
+ * control should be re-rendered. This is called in a `requestAnimationFrame`
+ * callback.
+ * @property {HTMLElement|string} [target] Specify a target if you want the
+ * control to be rendered outside of the map's viewport.
+ * @property {string} [undefinedHTML='&#160;'] Markup to show when coordinates are not
+ * available (e.g. when the pointer leaves the map viewport).  By default, the last position
+ * will be replaced with `'&#160;'` (`&nbsp;`) when the pointer leaves the viewport.  To
+ * retain the last rendered position, set this option to something falsey (like an empty
+ * string `''`).
+ */
+
+/**
+ * @classdesc
+ * A control to show the 2D coordinates of the mouse cursor. By default, these
+ * are in the view projection, but can be in any supported projection.
+ * By default the control is shown in the top right corner of the map, but this
+ * can be changed by using the css selector `.ol-mouse-position`.
+ *
+ * On touch devices, which usually do not have a mouse cursor, the coordinates
+ * of the currently touched position are shown.
+ *
+ * @api
+ */
+
+var MousePosition =
+/** @class */
+function (_super) {
+  __extends(MousePosition, _super);
+  /**
+   * @param {Options=} opt_options Mouse position options.
+   */
+
+
+  function MousePosition(opt_options) {
+    var _this = this;
+
+    var options = opt_options ? opt_options : {};
+    var element = document.createElement('div');
+    element.className = options.className !== undefined ? options.className : 'ol-mouse-position';
+    _this = _super.call(this, {
+      element: element,
+      render: options.render || render,
+      target: options.target
+    }) || this;
+
+    _this.addEventListener((0, _Object.getChangeEventType)(PROJECTION), _this.handleProjectionChanged_);
+
+    if (options.coordinateFormat) {
+      _this.setCoordinateFormat(options.coordinateFormat);
+    }
+
+    if (options.projection) {
+      _this.setProjection(options.projection);
+    }
+    /**
+     * @private
+     * @type {string}
+     */
+
+
+    _this.undefinedHTML_ = options.undefinedHTML !== undefined ? options.undefinedHTML : '&#160;';
+    /**
+     * @private
+     * @type {boolean}
+     */
+
+    _this.renderOnMouseOut_ = !!_this.undefinedHTML_;
+    /**
+     * @private
+     * @type {string}
+     */
+
+    _this.renderedHTML_ = element.innerHTML;
+    /**
+     * @private
+     * @type {?import("../proj/Projection.js").default}
+     */
+
+    _this.mapProjection_ = null;
+    /**
+     * @private
+     * @type {?import("../proj.js").TransformFunction}
+     */
+
+    _this.transform_ = null;
+    return _this;
+  }
+  /**
+   * @private
+   */
+
+
+  MousePosition.prototype.handleProjectionChanged_ = function () {
+    this.transform_ = null;
+  };
+  /**
+   * Return the coordinate format type used to render the current position or
+   * undefined.
+   * @return {import("../coordinate.js").CoordinateFormat|undefined} The format to render the current
+   *     position in.
+   * @observable
+   * @api
+   */
+
+
+  MousePosition.prototype.getCoordinateFormat = function () {
+    return (
+      /** @type {import("../coordinate.js").CoordinateFormat|undefined} */
+      this.get(COORDINATE_FORMAT)
+    );
+  };
+  /**
+   * Return the projection that is used to report the mouse position.
+   * @return {import("../proj/Projection.js").default|undefined} The projection to report mouse
+   *     position in.
+   * @observable
+   * @api
+   */
+
+
+  MousePosition.prototype.getProjection = function () {
+    return (
+      /** @type {import("../proj/Projection.js").default|undefined} */
+      this.get(PROJECTION)
+    );
+  };
+  /**
+   * @param {Event} event Browser event.
+   * @protected
+   */
+
+
+  MousePosition.prototype.handleMouseMove = function (event) {
+    var map = this.getMap();
+    this.updateHTML_(map.getEventPixel(event));
+  };
+  /**
+   * @param {Event} event Browser event.
+   * @protected
+   */
+
+
+  MousePosition.prototype.handleMouseOut = function (event) {
+    this.updateHTML_(null);
+  };
+  /**
+   * @inheritDoc
+   * @api
+   */
+
+
+  MousePosition.prototype.setMap = function (map) {
+    _super.prototype.setMap.call(this, map);
+
+    if (map) {
+      var viewport = map.getViewport();
+      this.listenerKeys.push((0, _events.listen)(viewport, _EventType.default.POINTERMOVE, this.handleMouseMove, this));
+
+      if (this.renderOnMouseOut_) {
+        this.listenerKeys.push((0, _events.listen)(viewport, _EventType.default.POINTEROUT, this.handleMouseOut, this));
+      }
+    }
+  };
+  /**
+   * Set the coordinate format type used to render the current position.
+   * @param {import("../coordinate.js").CoordinateFormat} format The format to render the current
+   *     position in.
+   * @observable
+   * @api
+   */
+
+
+  MousePosition.prototype.setCoordinateFormat = function (format) {
+    this.set(COORDINATE_FORMAT, format);
+  };
+  /**
+   * Set the projection that is used to report the mouse position.
+   * @param {import("../proj.js").ProjectionLike} projection The projection to report mouse
+   *     position in.
+   * @observable
+   * @api
+   */
+
+
+  MousePosition.prototype.setProjection = function (projection) {
+    this.set(PROJECTION, (0, _proj.get)(projection));
+  };
+  /**
+   * @param {?import("../pixel.js").Pixel} pixel Pixel.
+   * @private
+   */
+
+
+  MousePosition.prototype.updateHTML_ = function (pixel) {
+    var html = this.undefinedHTML_;
+
+    if (pixel && this.mapProjection_) {
+      if (!this.transform_) {
+        var projection = this.getProjection();
+
+        if (projection) {
+          this.transform_ = (0, _proj.getTransformFromProjections)(this.mapProjection_, projection);
+        } else {
+          this.transform_ = _proj.identityTransform;
+        }
+      }
+
+      var map = this.getMap();
+      var coordinate = map.getCoordinateFromPixelInternal(pixel);
+
+      if (coordinate) {
+        var userProjection = (0, _proj.getUserProjection)();
+
+        if (userProjection) {
+          this.transform_ = (0, _proj.getTransformFromProjections)(this.mapProjection_, userProjection);
+        }
+
+        this.transform_(coordinate, coordinate);
+        var coordinateFormat = this.getCoordinateFormat();
+
+        if (coordinateFormat) {
+          html = coordinateFormat(coordinate);
+        } else {
+          html = coordinate.toString();
+        }
+      }
+    }
+
+    if (!this.renderedHTML_ || html !== this.renderedHTML_) {
+      this.element.innerHTML = html;
+      this.renderedHTML_ = html;
+    }
+  };
+
+  return MousePosition;
+}(_Control.default);
+/**
+ * Update the projection. Rendering of the coordinates is done in
+ * `handleMouseMove` and `handleMouseUp`.
+ * @param {import("../MapEvent.js").default} mapEvent Map event.
+ * @this {MousePosition}
+ */
+
+
+function render(mapEvent) {
+  var frameState = mapEvent.frameState;
+
+  if (!frameState) {
+    this.mapProjection_ = null;
+  } else {
+    if (this.mapProjection_ != frameState.viewState.projection) {
+      this.mapProjection_ = frameState.viewState.projection;
+      this.transform_ = null;
+    }
+  }
+}
+
+var _default = MousePosition;
+exports.default = _default;
+},{"elm-pep":"node_modules/elm-pep/dist/elm-pep.js","../events.js":"node_modules/ol/events.js","../pointer/EventType.js":"node_modules/ol/pointer/EventType.js","../Object.js":"node_modules/ol/Object.js","./Control.js":"node_modules/ol/control/Control.js","../proj.js":"node_modules/ol/proj.js"}],"node_modules/ol/CollectionEventType.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12958,213 +13919,7 @@ function (_super) {
 
 var _default = MapBrowserEvent;
 exports.default = _default;
-},{"./MapEvent.js":"node_modules/ol/MapEvent.js"}],"node_modules/elm-pep/dist/elm-pep.js":[function(require,module,exports) {
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/
-// Variable to hold current primary touch event identifier.
-// iOS needs this since it does not attribute
-// identifier 0 to primary touch event.
-var primaryTouchId = null;
-// Variable to hold mouse pointer captures.
-var mouseCaptureTarget = null;
-if (!("PointerEvent" in window)) {
-    // Define {set,release}PointerCapture
-    definePointerCapture();
-    // Create Pointer polyfill from mouse events only on non-touch device
-    if (!("TouchEvent" in window)) {
-        addMouseToPointerListener(document, "mousedown", "pointerdown");
-        addMouseToPointerListener(document, "mousemove", "pointermove");
-        addMouseToPointerListener(document, "mouseup", "pointerup");
-    }
-    // Define Pointer polyfill from touch events
-    addTouchToPointerListener(document, "touchstart", "pointerdown");
-    addTouchToPointerListener(document, "touchmove", "pointermove");
-    addTouchToPointerListener(document, "touchend", "pointerup");
-}
-// Function defining {set,release}PointerCapture from {set,releas}Capture
-function definePointerCapture() {
-    Element.prototype.setPointerCapture = Element.prototype.setCapture;
-    Element.prototype.releasePointerCapture = Element.prototype.releaseCapture;
-}
-// Function converting a Mouse event to a Pointer event.
-function addMouseToPointerListener(target, mouseType, pointerType) {
-    target.addEventListener(mouseType, function (mouseEvent) {
-        var pointerEvent = new MouseEvent(pointerType, mouseEvent);
-        pointerEvent.pointerId = 1;
-        pointerEvent.isPrimary = true;
-        pointerEvent.pointerType = "mouse";
-        pointerEvent.width = 1;
-        pointerEvent.height = 1;
-        pointerEvent.tiltX = 0;
-        pointerEvent.tiltY = 0;
-        // pressure is 0.5 if a button is holded
-        "buttons" in mouseEvent && mouseEvent.buttons !== 0
-            ? (pointerEvent.pressure = 0.5)
-            : (pointerEvent.pressure = 0);
-        // if already capturing mouse event, transfer target
-        // and don't forget implicit release on mouseup.
-        var target = mouseEvent.target;
-        if (mouseCaptureTarget !== null) {
-            target = mouseCaptureTarget;
-            if (mouseType === "mouseup") {
-                mouseCaptureTarget = null;
-            }
-        }
-        target.dispatchEvent(pointerEvent);
-        if (pointerEvent.defaultPrevented) {
-            mouseEvent.preventDefault();
-        }
-    });
-}
-// Function converting a Touch event to a Pointer event.
-function addTouchToPointerListener(target, touchType, pointerType) {
-    target.addEventListener(touchType, function (touchEvent) {
-        var changedTouches = touchEvent.changedTouches;
-        var nbTouches = changedTouches.length;
-        for (var t = 0; t < nbTouches; t++) {
-            var pointerEvent = new CustomEvent(pointerType, {
-                bubbles: true,
-                cancelable: true
-            });
-            pointerEvent.ctrlKey = touchEvent.ctrlKey;
-            pointerEvent.shiftKey = touchEvent.shiftKey;
-            pointerEvent.altKey = touchEvent.altKey;
-            pointerEvent.metaKey = touchEvent.metaKey;
-            var touch = changedTouches.item(t);
-            pointerEvent.clientX = touch.clientX;
-            pointerEvent.clientY = touch.clientY;
-            pointerEvent.screenX = touch.screenX;
-            pointerEvent.screenY = touch.screenY;
-            pointerEvent.pageX = touch.pageX;
-            pointerEvent.pageY = touch.pageY;
-            var rect = touch.target.getBoundingClientRect();
-            pointerEvent.offsetX = touch.clientX - rect.left;
-            pointerEvent.offsetY = touch.clientY - rect.top;
-            pointerEvent.pointerId = 1 + touch.identifier;
-            // Default values for standard MouseEvent fields.
-            pointerEvent.button = 0;
-            pointerEvent.buttons = 1;
-            pointerEvent.movementX = 0;
-            pointerEvent.movementY = 0;
-            pointerEvent.region = null;
-            pointerEvent.relatedTarget = null;
-            pointerEvent.x = pointerEvent.clientX;
-            pointerEvent.y = pointerEvent.clientY;
-            // Pointer event details
-            pointerEvent.pointerType = "touch";
-            pointerEvent.width = 1;
-            pointerEvent.height = 1;
-            pointerEvent.tiltX = 0;
-            pointerEvent.tiltY = 0;
-            pointerEvent.pressure = 1;
-            // First touch is the primary pointer event.
-            if (touchType === "touchstart" && primaryTouchId === null) {
-                primaryTouchId = touch.identifier;
-            }
-            pointerEvent.isPrimary = touch.identifier === primaryTouchId;
-            // If first touch ends, reset primary touch id.
-            if (touchType === "touchend" && pointerEvent.isPrimary) {
-                primaryTouchId = null;
-            }
-            touchEvent.target.dispatchEvent(pointerEvent);
-            if (pointerEvent.defaultPrevented) {
-                touchEvent.preventDefault();
-            }
-        }
-    });
-}
-
-},{}],"node_modules/ol/has.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.PASSIVE_EVENT_LISTENERS = exports.IMAGE_DECODE = exports.WORKER_OFFSCREEN_CANVAS = exports.DEVICE_PIXEL_RATIO = exports.MAC = exports.WEBKIT = exports.SAFARI = exports.FIREFOX = void 0;
-
-/**
- * @module ol/has
- */
-var ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
-/**
- * User agent string says we are dealing with Firefox as browser.
- * @type {boolean}
- */
-
-var FIREFOX = ua.indexOf('firefox') !== -1;
-/**
- * User agent string says we are dealing with Safari as browser.
- * @type {boolean}
- */
-
-exports.FIREFOX = FIREFOX;
-var SAFARI = ua.indexOf('safari') !== -1 && ua.indexOf('chrom') == -1;
-/**
- * User agent string says we are dealing with a WebKit engine.
- * @type {boolean}
- */
-
-exports.SAFARI = SAFARI;
-var WEBKIT = ua.indexOf('webkit') !== -1 && ua.indexOf('edge') == -1;
-/**
- * User agent string says we are dealing with a Mac as platform.
- * @type {boolean}
- */
-
-exports.WEBKIT = WEBKIT;
-var MAC = ua.indexOf('macintosh') !== -1;
-/**
- * The ratio between physical pixels and device-independent pixels
- * (dips) on the device (`window.devicePixelRatio`).
- * @const
- * @type {number}
- * @api
- */
-
-exports.MAC = MAC;
-var DEVICE_PIXEL_RATIO = typeof devicePixelRatio !== 'undefined' ? devicePixelRatio : 1;
-/**
- * The execution context is a worker with OffscreenCanvas available.
- * @const
- * @type {boolean}
- */
-
-exports.DEVICE_PIXEL_RATIO = DEVICE_PIXEL_RATIO;
-var WORKER_OFFSCREEN_CANVAS = typeof WorkerGlobalScope !== 'undefined' && typeof OffscreenCanvas !== 'undefined' && self instanceof WorkerGlobalScope; //eslint-disable-line
-
-/**
- * Image.prototype.decode() is supported.
- * @type {boolean}
- */
-
-exports.WORKER_OFFSCREEN_CANVAS = WORKER_OFFSCREEN_CANVAS;
-var IMAGE_DECODE = typeof Image !== 'undefined' && Image.prototype.decode;
-/**
- * @type {boolean}
- */
-
-exports.IMAGE_DECODE = IMAGE_DECODE;
-
-var PASSIVE_EVENT_LISTENERS = function () {
-  var passive = false;
-
-  try {
-    var options = Object.defineProperty({}, 'passive', {
-      get: function () {
-        passive = true;
-      }
-    });
-    window.addEventListener('_', null, options);
-    window.removeEventListener('_', null, options);
-  } catch (error) {// passive not supported
-  }
-
-  return passive;
-}();
-
-exports.PASSIVE_EVENT_LISTENERS = PASSIVE_EVENT_LISTENERS;
-},{}],"node_modules/ol/MapBrowserEventType.js":[function(require,module,exports) {
+},{"./MapEvent.js":"node_modules/ol/MapEvent.js"}],"node_modules/ol/MapBrowserEventType.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13300,34 +14055,7 @@ function (_super) {
 
 var _default = MapBrowserPointerEvent;
 exports.default = _default;
-},{"./MapBrowserEvent.js":"node_modules/ol/MapBrowserEvent.js"}],"node_modules/ol/pointer/EventType.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-/**
- * @module ol/pointer/EventType
- */
-
-/**
- * Constants for event names.
- * @enum {string}
- */
-var _default = {
-  POINTERMOVE: 'pointermove',
-  POINTERDOWN: 'pointerdown',
-  POINTERUP: 'pointerup',
-  POINTEROVER: 'pointerover',
-  POINTEROUT: 'pointerout',
-  POINTERENTER: 'pointerenter',
-  POINTERLEAVE: 'pointerleave',
-  POINTERCANCEL: 'pointercancel'
-};
-exports.default = _default;
-},{}],"node_modules/ol/MapBrowserEventHandler.js":[function(require,module,exports) {
+},{"./MapBrowserEvent.js":"node_modules/ol/MapBrowserEvent.js"}],"node_modules/ol/MapBrowserEventHandler.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13683,45 +14411,7 @@ function (_super) {
 
 var _default = MapBrowserEventHandler;
 exports.default = _default;
-},{"elm-pep":"node_modules/elm-pep/dist/elm-pep.js","./has.js":"node_modules/ol/has.js","./MapBrowserEventType.js":"node_modules/ol/MapBrowserEventType.js","./MapBrowserPointerEvent.js":"node_modules/ol/MapBrowserPointerEvent.js","./events.js":"node_modules/ol/events.js","./events/Target.js":"node_modules/ol/events/Target.js","./pointer/EventType.js":"node_modules/ol/pointer/EventType.js","./events/EventType.js":"node_modules/ol/events/EventType.js"}],"node_modules/ol/MapEventType.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-/**
- * @module ol/MapEventType
- */
-
-/**
- * @enum {string}
- */
-var _default = {
-  /**
-   * Triggered after a map frame is rendered.
-   * @event module:ol/MapEvent~MapEvent#postrender
-   * @api
-   */
-  POSTRENDER: 'postrender',
-
-  /**
-   * Triggered when the map starts moving.
-   * @event module:ol/MapEvent~MapEvent#movestart
-   * @api
-   */
-  MOVESTART: 'movestart',
-
-  /**
-   * Triggered after the map is moved.
-   * @event module:ol/MapEvent~MapEvent#moveend
-   * @api
-   */
-  MOVEEND: 'moveend'
-};
-exports.default = _default;
-},{}],"node_modules/ol/MapProperty.js":[function(require,module,exports) {
+},{"elm-pep":"node_modules/elm-pep/dist/elm-pep.js","./has.js":"node_modules/ol/has.js","./MapBrowserEventType.js":"node_modules/ol/MapBrowserEventType.js","./MapBrowserPointerEvent.js":"node_modules/ol/MapBrowserPointerEvent.js","./events.js":"node_modules/ol/events.js","./events/Target.js":"node_modules/ol/events/Target.js","./pointer/EventType.js":"node_modules/ol/pointer/EventType.js","./events/EventType.js":"node_modules/ol/events/EventType.js"}],"node_modules/ol/MapProperty.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17306,157 +17996,7 @@ function isNoopAnimation(animation) {
 
 var _default = View;
 exports.default = _default;
-},{"./tilegrid/common.js":"node_modules/ol/tilegrid/common.js","./functions.js":"node_modules/ol/functions.js","./centerconstraint.js":"node_modules/ol/centerconstraint.js","./Object.js":"node_modules/ol/Object.js","./resolutionconstraint.js":"node_modules/ol/resolutionconstraint.js","./rotationconstraint.js":"node_modules/ol/rotationconstraint.js","./ViewHint.js":"node_modules/ol/ViewHint.js","./ViewProperty.js":"node_modules/ol/ViewProperty.js","./array.js":"node_modules/ol/array.js","./asserts.js":"node_modules/ol/asserts.js","./coordinate.js":"node_modules/ol/coordinate.js","./easing.js":"node_modules/ol/easing.js","./extent.js":"node_modules/ol/extent.js","./geom/GeometryType.js":"node_modules/ol/geom/GeometryType.js","./geom/Polygon.js":"node_modules/ol/geom/Polygon.js","./math.js":"node_modules/ol/math.js","./obj.js":"node_modules/ol/obj.js","./proj.js":"node_modules/ol/proj.js","./proj/Units.js":"node_modules/ol/proj/Units.js"}],"node_modules/ol/dom.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.createCanvasContext2D = createCanvasContext2D;
-exports.outerWidth = outerWidth;
-exports.outerHeight = outerHeight;
-exports.replaceNode = replaceNode;
-exports.removeNode = removeNode;
-exports.removeChildren = removeChildren;
-exports.replaceChildren = replaceChildren;
-
-var _has = require("./has.js");
-
-/**
- * @module ol/dom
- */
-//FIXME Move this function to the canvas module
-
-/**
- * Create an html canvas element and returns its 2d context.
- * @param {number=} opt_width Canvas width.
- * @param {number=} opt_height Canvas height.
- * @param {Array<HTMLCanvasElement>=} opt_canvasPool Canvas pool to take existing canvas from.
- * @return {CanvasRenderingContext2D} The context.
- */
-function createCanvasContext2D(opt_width, opt_height, opt_canvasPool) {
-  var canvas = opt_canvasPool && opt_canvasPool.length ? opt_canvasPool.shift() : _has.WORKER_OFFSCREEN_CANVAS ? new OffscreenCanvas(opt_width || 300, opt_height || 300) : document.createElement('canvas');
-
-  if (opt_width) {
-    canvas.width = opt_width;
-  }
-
-  if (opt_height) {
-    canvas.height = opt_height;
-  } //FIXME Allow OffscreenCanvasRenderingContext2D as return type
-
-
-  return (
-    /** @type {CanvasRenderingContext2D} */
-    canvas.getContext('2d')
-  );
-}
-/**
- * Get the current computed width for the given element including margin,
- * padding and border.
- * Equivalent to jQuery's `$(el).outerWidth(true)`.
- * @param {!HTMLElement} element Element.
- * @return {number} The width.
- */
-
-
-function outerWidth(element) {
-  var width = element.offsetWidth;
-  var style = getComputedStyle(element);
-  width += parseInt(style.marginLeft, 10) + parseInt(style.marginRight, 10);
-  return width;
-}
-/**
- * Get the current computed height for the given element including margin,
- * padding and border.
- * Equivalent to jQuery's `$(el).outerHeight(true)`.
- * @param {!HTMLElement} element Element.
- * @return {number} The height.
- */
-
-
-function outerHeight(element) {
-  var height = element.offsetHeight;
-  var style = getComputedStyle(element);
-  height += parseInt(style.marginTop, 10) + parseInt(style.marginBottom, 10);
-  return height;
-}
-/**
- * @param {Node} newNode Node to replace old node
- * @param {Node} oldNode The node to be replaced
- */
-
-
-function replaceNode(newNode, oldNode) {
-  var parent = oldNode.parentNode;
-
-  if (parent) {
-    parent.replaceChild(newNode, oldNode);
-  }
-}
-/**
- * @param {Node} node The node to remove.
- * @returns {Node} The node that was removed or null.
- */
-
-
-function removeNode(node) {
-  return node && node.parentNode ? node.parentNode.removeChild(node) : null;
-}
-/**
- * @param {Node} node The node to remove the children from.
- */
-
-
-function removeChildren(node) {
-  while (node.lastChild) {
-    node.removeChild(node.lastChild);
-  }
-}
-/**
- * Transform the children of a parent node so they match the
- * provided list of children.  This function aims to efficiently
- * remove, add, and reorder child nodes while maintaining a simple
- * implementation (it is not guaranteed to minimize DOM operations).
- * @param {Node} node The parent node whose children need reworking.
- * @param {Array<Node>} children The desired children.
- */
-
-
-function replaceChildren(node, children) {
-  var oldChildren = node.childNodes;
-
-  for (var i = 0; true; ++i) {
-    var oldChild = oldChildren[i];
-    var newChild = children[i]; // check if our work is done
-
-    if (!oldChild && !newChild) {
-      break;
-    } // check if children match
-
-
-    if (oldChild === newChild) {
-      continue;
-    } // check if a new child needs to be added
-
-
-    if (!oldChild) {
-      node.appendChild(newChild);
-      continue;
-    } // check if an old child needs to be removed
-
-
-    if (!newChild) {
-      node.removeChild(oldChild);
-      --i;
-      continue;
-    } // reorder
-
-
-    node.insertBefore(newChild, oldChild);
-  }
-}
-},{"./has.js":"node_modules/ol/has.js"}],"node_modules/ol/layer/Property.js":[function(require,module,exports) {
+},{"./tilegrid/common.js":"node_modules/ol/tilegrid/common.js","./functions.js":"node_modules/ol/functions.js","./centerconstraint.js":"node_modules/ol/centerconstraint.js","./Object.js":"node_modules/ol/Object.js","./resolutionconstraint.js":"node_modules/ol/resolutionconstraint.js","./rotationconstraint.js":"node_modules/ol/rotationconstraint.js","./ViewHint.js":"node_modules/ol/ViewHint.js","./ViewProperty.js":"node_modules/ol/ViewProperty.js","./array.js":"node_modules/ol/array.js","./asserts.js":"node_modules/ol/asserts.js","./coordinate.js":"node_modules/ol/coordinate.js","./easing.js":"node_modules/ol/easing.js","./extent.js":"node_modules/ol/extent.js","./geom/GeometryType.js":"node_modules/ol/geom/GeometryType.js","./geom/Polygon.js":"node_modules/ol/geom/Polygon.js","./math.js":"node_modules/ol/math.js","./obj.js":"node_modules/ol/obj.js","./proj.js":"node_modules/ol/proj.js","./proj/Units.js":"node_modules/ol/proj/Units.js"}],"node_modules/ol/layer/Property.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -19930,223 +20470,7 @@ function createOptionsInternal(options) {
 
 var _default = PluggableMap;
 exports.default = _default;
-},{"./Collection.js":"node_modules/ol/Collection.js","./CollectionEventType.js":"node_modules/ol/CollectionEventType.js","./MapBrowserEvent.js":"node_modules/ol/MapBrowserEvent.js","./MapBrowserEventHandler.js":"node_modules/ol/MapBrowserEventHandler.js","./MapBrowserEventType.js":"node_modules/ol/MapBrowserEventType.js","./MapEvent.js":"node_modules/ol/MapEvent.js","./MapEventType.js":"node_modules/ol/MapEventType.js","./MapProperty.js":"node_modules/ol/MapProperty.js","./render/EventType.js":"node_modules/ol/render/EventType.js","./Object.js":"node_modules/ol/Object.js","./ObjectEventType.js":"node_modules/ol/ObjectEventType.js","./TileQueue.js":"node_modules/ol/TileQueue.js","./View.js":"node_modules/ol/View.js","./ViewHint.js":"node_modules/ol/ViewHint.js","./asserts.js":"node_modules/ol/asserts.js","./dom.js":"node_modules/ol/dom.js","./events.js":"node_modules/ol/events.js","./events/EventType.js":"node_modules/ol/events/EventType.js","./extent.js":"node_modules/ol/extent.js","./functions.js":"node_modules/ol/functions.js","./has.js":"node_modules/ol/has.js","./layer/Group.js":"node_modules/ol/layer/Group.js","./size.js":"node_modules/ol/size.js","./transform.js":"node_modules/ol/transform.js","./proj.js":"node_modules/ol/proj.js"}],"node_modules/ol/control/Control.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _functions = require("../functions.js");
-
-var _MapEventType = _interopRequireDefault(require("../MapEventType.js"));
-
-var _Object = _interopRequireDefault(require("../Object.js"));
-
-var _dom = require("../dom.js");
-
-var _events = require("../events.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var __extends = void 0 && (void 0).__extends || function () {
-  var extendStatics = function (d, b) {
-    extendStatics = Object.setPrototypeOf || {
-      __proto__: []
-    } instanceof Array && function (d, b) {
-      d.__proto__ = b;
-    } || function (d, b) {
-      for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    };
-
-    return extendStatics(d, b);
-  };
-
-  return function (d, b) {
-    extendStatics(d, b);
-
-    function __() {
-      this.constructor = d;
-    }
-
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-  };
-}();
-/**
- * @module ol/control/Control
- */
-
-
-/**
- * @typedef {Object} Options
- * @property {HTMLElement} [element] The element is the control's
- * container element. This only needs to be specified if you're developing
- * a custom control.
- * @property {function(import("../MapEvent.js").default)} [render] Function called when
- * the control should be re-rendered. This is called in a `requestAnimationFrame`
- * callback.
- * @property {HTMLElement|string} [target] Specify a target if you want
- * the control to be rendered outside of the map's viewport.
- */
-
-/**
- * @classdesc
- * A control is a visible widget with a DOM element in a fixed position on the
- * screen. They can involve user input (buttons), or be informational only;
- * the position is determined using CSS. By default these are placed in the
- * container with CSS class name `ol-overlaycontainer-stopevent`, but can use
- * any outside DOM element.
- *
- * This is the base class for controls. You can use it for simple custom
- * controls by creating the element with listeners, creating an instance:
- * ```js
- * var myControl = new Control({element: myElement});
- * ```
- * and then adding this to the map.
- *
- * The main advantage of having this as a control rather than a simple separate
- * DOM element is that preventing propagation is handled for you. Controls
- * will also be objects in a {@link module:ol/Collection~Collection}, so you can use their methods.
- *
- * You can also extend this base for your own control class. See
- * examples/custom-controls for an example of how to do this.
- *
- * @api
- */
-var Control =
-/** @class */
-function (_super) {
-  __extends(Control, _super);
-  /**
-   * @param {Options} options Control options.
-   */
-
-
-  function Control(options) {
-    var _this = _super.call(this) || this;
-    /**
-     * @protected
-     * @type {HTMLElement}
-     */
-
-
-    _this.element = options.element ? options.element : null;
-    /**
-     * @private
-     * @type {HTMLElement}
-     */
-
-    _this.target_ = null;
-    /**
-     * @private
-     * @type {import("../PluggableMap.js").default}
-     */
-
-    _this.map_ = null;
-    /**
-     * @protected
-     * @type {!Array<import("../events.js").EventsKey>}
-     */
-
-    _this.listenerKeys = [];
-    /**
-     * @private
-     * @type {function(import("../MapEvent.js").default): void}
-     */
-
-    _this.render_ = options.render ? options.render : _functions.VOID;
-
-    if (options.target) {
-      _this.setTarget(options.target);
-    }
-
-    return _this;
-  }
-  /**
-   * @inheritDoc
-   */
-
-
-  Control.prototype.disposeInternal = function () {
-    (0, _dom.removeNode)(this.element);
-
-    _super.prototype.disposeInternal.call(this);
-  };
-  /**
-   * Get the map associated with this control.
-   * @return {import("../PluggableMap.js").default} Map.
-   * @api
-   */
-
-
-  Control.prototype.getMap = function () {
-    return this.map_;
-  };
-  /**
-   * Remove the control from its current map and attach it to the new map.
-   * Subclasses may set up event handlers to get notified about changes to
-   * the map here.
-   * @param {import("../PluggableMap.js").default} map Map.
-   * @api
-   */
-
-
-  Control.prototype.setMap = function (map) {
-    if (this.map_) {
-      (0, _dom.removeNode)(this.element);
-    }
-
-    for (var i = 0, ii = this.listenerKeys.length; i < ii; ++i) {
-      (0, _events.unlistenByKey)(this.listenerKeys[i]);
-    }
-
-    this.listenerKeys.length = 0;
-    this.map_ = map;
-
-    if (this.map_) {
-      var target = this.target_ ? this.target_ : map.getOverlayContainerStopEvent();
-      target.appendChild(this.element);
-
-      if (this.render !== _functions.VOID) {
-        this.listenerKeys.push((0, _events.listen)(map, _MapEventType.default.POSTRENDER, this.render, this));
-      }
-
-      map.render();
-    }
-  };
-  /**
-   * Update the projection. Rendering of the coordinates is done in
-   * `handleMouseMove` and `handleMouseUp`.
-   * @param {import("../MapEvent.js").default} mapEvent Map event.
-   * @api
-   */
-
-
-  Control.prototype.render = function (mapEvent) {
-    this.render_.call(this, mapEvent);
-  };
-  /**
-   * This function is used to set a target element for the control. It has no
-   * effect if it is called after the control has been added to the map (i.e.
-   * after `setMap` is called on the control). If no `target` is set in the
-   * options passed to the control constructor and if `setTarget` is not called
-   * then the control is added to the map's overlay container.
-   * @param {HTMLElement|string} target Target.
-   * @api
-   */
-
-
-  Control.prototype.setTarget = function (target) {
-    this.target_ = typeof target === 'string' ? document.getElementById(target) : target;
-  };
-
-  return Control;
-}(_Object.default);
-
-var _default = Control;
-exports.default = _default;
-},{"../functions.js":"node_modules/ol/functions.js","../MapEventType.js":"node_modules/ol/MapEventType.js","../Object.js":"node_modules/ol/Object.js","../dom.js":"node_modules/ol/dom.js","../events.js":"node_modules/ol/events.js"}],"node_modules/ol/css.js":[function(require,module,exports) {
+},{"./Collection.js":"node_modules/ol/Collection.js","./CollectionEventType.js":"node_modules/ol/CollectionEventType.js","./MapBrowserEvent.js":"node_modules/ol/MapBrowserEvent.js","./MapBrowserEventHandler.js":"node_modules/ol/MapBrowserEventHandler.js","./MapBrowserEventType.js":"node_modules/ol/MapBrowserEventType.js","./MapEvent.js":"node_modules/ol/MapEvent.js","./MapEventType.js":"node_modules/ol/MapEventType.js","./MapProperty.js":"node_modules/ol/MapProperty.js","./render/EventType.js":"node_modules/ol/render/EventType.js","./Object.js":"node_modules/ol/Object.js","./ObjectEventType.js":"node_modules/ol/ObjectEventType.js","./TileQueue.js":"node_modules/ol/TileQueue.js","./View.js":"node_modules/ol/View.js","./ViewHint.js":"node_modules/ol/ViewHint.js","./asserts.js":"node_modules/ol/asserts.js","./dom.js":"node_modules/ol/dom.js","./events.js":"node_modules/ol/events.js","./events/EventType.js":"node_modules/ol/events/EventType.js","./extent.js":"node_modules/ol/extent.js","./functions.js":"node_modules/ol/functions.js","./has.js":"node_modules/ol/has.js","./layer/Group.js":"node_modules/ol/layer/Group.js","./size.js":"node_modules/ol/size.js","./transform.js":"node_modules/ol/transform.js","./proj.js":"node_modules/ol/proj.js"}],"node_modules/ol/css.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21804,331 +22128,7 @@ function exitFullScreen() {
 
 var _default = FullScreen;
 exports.default = _default;
-},{"./Control.js":"node_modules/ol/control/Control.js","../css.js":"node_modules/ol/css.js","../dom.js":"node_modules/ol/dom.js","../events.js":"node_modules/ol/events.js","../events/EventType.js":"node_modules/ol/events/EventType.js"}],"node_modules/ol/control/MousePosition.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.render = render;
-exports.default = void 0;
-
-require("elm-pep");
-
-var _events = require("../events.js");
-
-var _EventType = _interopRequireDefault(require("../pointer/EventType.js"));
-
-var _Object = require("../Object.js");
-
-var _Control = _interopRequireDefault(require("./Control.js"));
-
-var _proj = require("../proj.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * @module ol/control/MousePosition
- */
-var __extends = void 0 && (void 0).__extends || function () {
-  var extendStatics = function (d, b) {
-    extendStatics = Object.setPrototypeOf || {
-      __proto__: []
-    } instanceof Array && function (d, b) {
-      d.__proto__ = b;
-    } || function (d, b) {
-      for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    };
-
-    return extendStatics(d, b);
-  };
-
-  return function (d, b) {
-    extendStatics(d, b);
-
-    function __() {
-      this.constructor = d;
-    }
-
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-  };
-}();
-
-/**
- * @type {string}
- */
-var PROJECTION = 'projection';
-/**
- * @type {string}
- */
-
-var COORDINATE_FORMAT = 'coordinateFormat';
-/**
- * @typedef {Object} Options
- * @property {string} [className='ol-mouse-position'] CSS class name.
- * @property {import("../coordinate.js").CoordinateFormat} [coordinateFormat] Coordinate format.
- * @property {import("../proj.js").ProjectionLike} [projection] Projection. Default is the view projection.
- * @property {function(import("../MapEvent.js").default)} [render] Function called when the
- * control should be re-rendered. This is called in a `requestAnimationFrame`
- * callback.
- * @property {HTMLElement|string} [target] Specify a target if you want the
- * control to be rendered outside of the map's viewport.
- * @property {string} [undefinedHTML='&#160;'] Markup to show when coordinates are not
- * available (e.g. when the pointer leaves the map viewport).  By default, the last position
- * will be replaced with `'&#160;'` (`&nbsp;`) when the pointer leaves the viewport.  To
- * retain the last rendered position, set this option to something falsey (like an empty
- * string `''`).
- */
-
-/**
- * @classdesc
- * A control to show the 2D coordinates of the mouse cursor. By default, these
- * are in the view projection, but can be in any supported projection.
- * By default the control is shown in the top right corner of the map, but this
- * can be changed by using the css selector `.ol-mouse-position`.
- *
- * On touch devices, which usually do not have a mouse cursor, the coordinates
- * of the currently touched position are shown.
- *
- * @api
- */
-
-var MousePosition =
-/** @class */
-function (_super) {
-  __extends(MousePosition, _super);
-  /**
-   * @param {Options=} opt_options Mouse position options.
-   */
-
-
-  function MousePosition(opt_options) {
-    var _this = this;
-
-    var options = opt_options ? opt_options : {};
-    var element = document.createElement('div');
-    element.className = options.className !== undefined ? options.className : 'ol-mouse-position';
-    _this = _super.call(this, {
-      element: element,
-      render: options.render || render,
-      target: options.target
-    }) || this;
-
-    _this.addEventListener((0, _Object.getChangeEventType)(PROJECTION), _this.handleProjectionChanged_);
-
-    if (options.coordinateFormat) {
-      _this.setCoordinateFormat(options.coordinateFormat);
-    }
-
-    if (options.projection) {
-      _this.setProjection(options.projection);
-    }
-    /**
-     * @private
-     * @type {string}
-     */
-
-
-    _this.undefinedHTML_ = options.undefinedHTML !== undefined ? options.undefinedHTML : '&#160;';
-    /**
-     * @private
-     * @type {boolean}
-     */
-
-    _this.renderOnMouseOut_ = !!_this.undefinedHTML_;
-    /**
-     * @private
-     * @type {string}
-     */
-
-    _this.renderedHTML_ = element.innerHTML;
-    /**
-     * @private
-     * @type {?import("../proj/Projection.js").default}
-     */
-
-    _this.mapProjection_ = null;
-    /**
-     * @private
-     * @type {?import("../proj.js").TransformFunction}
-     */
-
-    _this.transform_ = null;
-    return _this;
-  }
-  /**
-   * @private
-   */
-
-
-  MousePosition.prototype.handleProjectionChanged_ = function () {
-    this.transform_ = null;
-  };
-  /**
-   * Return the coordinate format type used to render the current position or
-   * undefined.
-   * @return {import("../coordinate.js").CoordinateFormat|undefined} The format to render the current
-   *     position in.
-   * @observable
-   * @api
-   */
-
-
-  MousePosition.prototype.getCoordinateFormat = function () {
-    return (
-      /** @type {import("../coordinate.js").CoordinateFormat|undefined} */
-      this.get(COORDINATE_FORMAT)
-    );
-  };
-  /**
-   * Return the projection that is used to report the mouse position.
-   * @return {import("../proj/Projection.js").default|undefined} The projection to report mouse
-   *     position in.
-   * @observable
-   * @api
-   */
-
-
-  MousePosition.prototype.getProjection = function () {
-    return (
-      /** @type {import("../proj/Projection.js").default|undefined} */
-      this.get(PROJECTION)
-    );
-  };
-  /**
-   * @param {Event} event Browser event.
-   * @protected
-   */
-
-
-  MousePosition.prototype.handleMouseMove = function (event) {
-    var map = this.getMap();
-    this.updateHTML_(map.getEventPixel(event));
-  };
-  /**
-   * @param {Event} event Browser event.
-   * @protected
-   */
-
-
-  MousePosition.prototype.handleMouseOut = function (event) {
-    this.updateHTML_(null);
-  };
-  /**
-   * @inheritDoc
-   * @api
-   */
-
-
-  MousePosition.prototype.setMap = function (map) {
-    _super.prototype.setMap.call(this, map);
-
-    if (map) {
-      var viewport = map.getViewport();
-      this.listenerKeys.push((0, _events.listen)(viewport, _EventType.default.POINTERMOVE, this.handleMouseMove, this));
-
-      if (this.renderOnMouseOut_) {
-        this.listenerKeys.push((0, _events.listen)(viewport, _EventType.default.POINTEROUT, this.handleMouseOut, this));
-      }
-    }
-  };
-  /**
-   * Set the coordinate format type used to render the current position.
-   * @param {import("../coordinate.js").CoordinateFormat} format The format to render the current
-   *     position in.
-   * @observable
-   * @api
-   */
-
-
-  MousePosition.prototype.setCoordinateFormat = function (format) {
-    this.set(COORDINATE_FORMAT, format);
-  };
-  /**
-   * Set the projection that is used to report the mouse position.
-   * @param {import("../proj.js").ProjectionLike} projection The projection to report mouse
-   *     position in.
-   * @observable
-   * @api
-   */
-
-
-  MousePosition.prototype.setProjection = function (projection) {
-    this.set(PROJECTION, (0, _proj.get)(projection));
-  };
-  /**
-   * @param {?import("../pixel.js").Pixel} pixel Pixel.
-   * @private
-   */
-
-
-  MousePosition.prototype.updateHTML_ = function (pixel) {
-    var html = this.undefinedHTML_;
-
-    if (pixel && this.mapProjection_) {
-      if (!this.transform_) {
-        var projection = this.getProjection();
-
-        if (projection) {
-          this.transform_ = (0, _proj.getTransformFromProjections)(this.mapProjection_, projection);
-        } else {
-          this.transform_ = _proj.identityTransform;
-        }
-      }
-
-      var map = this.getMap();
-      var coordinate = map.getCoordinateFromPixelInternal(pixel);
-
-      if (coordinate) {
-        var userProjection = (0, _proj.getUserProjection)();
-
-        if (userProjection) {
-          this.transform_ = (0, _proj.getTransformFromProjections)(this.mapProjection_, userProjection);
-        }
-
-        this.transform_(coordinate, coordinate);
-        var coordinateFormat = this.getCoordinateFormat();
-
-        if (coordinateFormat) {
-          html = coordinateFormat(coordinate);
-        } else {
-          html = coordinate.toString();
-        }
-      }
-    }
-
-    if (!this.renderedHTML_ || html !== this.renderedHTML_) {
-      this.element.innerHTML = html;
-      this.renderedHTML_ = html;
-    }
-  };
-
-  return MousePosition;
-}(_Control.default);
-/**
- * Update the projection. Rendering of the coordinates is done in
- * `handleMouseMove` and `handleMouseUp`.
- * @param {import("../MapEvent.js").default} mapEvent Map event.
- * @this {MousePosition}
- */
-
-
-function render(mapEvent) {
-  var frameState = mapEvent.frameState;
-
-  if (!frameState) {
-    this.mapProjection_ = null;
-  } else {
-    if (this.mapProjection_ != frameState.viewState.projection) {
-      this.mapProjection_ = frameState.viewState.projection;
-      this.transform_ = null;
-    }
-  }
-}
-
-var _default = MousePosition;
-exports.default = _default;
-},{"elm-pep":"node_modules/elm-pep/dist/elm-pep.js","../events.js":"node_modules/ol/events.js","../pointer/EventType.js":"node_modules/ol/pointer/EventType.js","../Object.js":"node_modules/ol/Object.js","./Control.js":"node_modules/ol/control/Control.js","../proj.js":"node_modules/ol/proj.js"}],"node_modules/ol/render/Event.js":[function(require,module,exports) {
+},{"./Control.js":"node_modules/ol/control/Control.js","../css.js":"node_modules/ol/css.js","../dom.js":"node_modules/ol/dom.js","../events.js":"node_modules/ol/events.js","../events/EventType.js":"node_modules/ol/events/EventType.js"}],"node_modules/ol/render/Event.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -93841,6 +93841,8 @@ var _GeoJSON = _interopRequireDefault(require("ol/format/GeoJSON"));
 
 var _LinearRing = _interopRequireDefault(require("ol/geom/LinearRing"));
 
+var _MousePosition = _interopRequireDefault(require("ol/control/MousePosition"));
+
 var _Map = _interopRequireDefault(require("ol/Map"));
 
 var _OSM = _interopRequireDefault(require("ol/source/OSM"));
@@ -93861,9 +93863,22 @@ var _proj = require("ol/proj");
 
 var _jsts = _interopRequireDefault(require("jsts"));
 
+var _coordinate = require("ol/coordinate");
+
+var _control = require("ol/control");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-//#region jsts buffer import 
+var mousePositionControl = new _MousePosition.default({
+  coordinateFormat: (0, _coordinate.createStringXY)(4),
+  projection: 'EPSG:4326',
+  // comment the following two lines to have the mouse position
+  // be placed within the map.
+  className: 'custom-mouse-position',
+  target: document.getElementById('mouse-position'),
+  undefinedHTML: '&nbsp;'
+}); //#region jsts buffer import 
+
 var source2 = new _Vector.default();
 fetch('data/geojson/citizens.geojson').then(function (response) {
   return response.json();
@@ -93909,6 +93924,7 @@ var layers = [new _Tile.default({
 }), new _layer.Vector({
   source: source2
 }), new _Tile.default({
+  title: 'Border',
   source: new _TileWMS.default({
     url: 'http://localhost:8080/geoserver/moscow/wms',
     params: {
@@ -93921,6 +93937,7 @@ var layers = [new _Tile.default({
     transition: 0
   })
 }), new _Tile.default({
+  title: 'Houses',
   source: new _TileWMS.default({
     url: 'http://localhost:8080/geoserver/moscow/wms',
     params: {
@@ -93932,6 +93949,7 @@ var layers = [new _Tile.default({
     transition: 0
   })
 }), new _Tile.default({
+  title: 'Points of interset',
   source: new _TileWMS.default({
     url: 'http://localhost:8080/geoserver/moscow/wms',
     params: {
@@ -93942,19 +93960,9 @@ var layers = [new _Tile.default({
     // Countries have transparency, so do not fade tiles:task2_1
     transition: 0
   })
-}), new _Tile.default({
-  source: new _TileWMS.default({
-    url: 'http://localhost:8080/geoserver/moscow/wms',
-    params: {
-      'LAYERS': 'moscow:task2_1',
-      'TILED': true
-    },
-    serverType: 'geoserver',
-    // Countries have transparency, so do not fade tiles:
-    transition: 0
-  })
 })];
 var map = new _Map.default({
+  controls: (0, _control.defaults)().extend([mousePositionControl]),
   layers: layers,
   target: 'map',
   view: new _View.default({
@@ -93962,7 +93970,17 @@ var map = new _Map.default({
     zoom: 13
   })
 });
-},{"ol/ol.css":"node_modules/ol/ol.css","ol/format/GeoJSON":"node_modules/ol/format/GeoJSON.js","ol/geom/LinearRing":"node_modules/ol/geom/LinearRing.js","ol/Map":"node_modules/ol/Map.js","ol/source/OSM":"node_modules/ol/source/OSM.js","ol/source/Vector":"node_modules/ol/source/Vector.js","ol/View":"node_modules/ol/View.js","ol/geom":"node_modules/ol/geom.js","ol/layer/Tile":"node_modules/ol/layer/Tile.js","ol/source/TileWMS":"node_modules/ol/source/TileWMS.js","ol/layer":"node_modules/ol/layer.js","ol/proj":"node_modules/ol/proj.js","jsts":"node_modules/jsts/dist/jsts.min.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+map.addControl(new ol.control.LayerSwitcher());
+var projectionSelect = document.getElementById('projection');
+projectionSelect.addEventListener('change', function (event) {
+  mousePositionControl.setProjection(event.target.value);
+});
+var precisionInput = document.getElementById('precision');
+precisionInput.addEventListener('change', function (event) {
+  var format = (0, _coordinate.createStringXY)(event.target.valueAsNumber);
+  mousePositionControl.setCoordinateFormat(format);
+});
+},{"ol/ol.css":"node_modules/ol/ol.css","ol/format/GeoJSON":"node_modules/ol/format/GeoJSON.js","ol/geom/LinearRing":"node_modules/ol/geom/LinearRing.js","ol/control/MousePosition":"node_modules/ol/control/MousePosition.js","ol/Map":"node_modules/ol/Map.js","ol/source/OSM":"node_modules/ol/source/OSM.js","ol/source/Vector":"node_modules/ol/source/Vector.js","ol/View":"node_modules/ol/View.js","ol/geom":"node_modules/ol/geom.js","ol/layer/Tile":"node_modules/ol/layer/Tile.js","ol/source/TileWMS":"node_modules/ol/source/TileWMS.js","ol/layer":"node_modules/ol/layer.js","ol/proj":"node_modules/ol/proj.js","jsts":"node_modules/jsts/dist/jsts.min.js","ol/coordinate":"node_modules/ol/coordinate.js","ol/control":"node_modules/ol/control.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -93990,7 +94008,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57716" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56823" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
