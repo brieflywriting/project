@@ -1,8 +1,8 @@
 import "heatmap.js";
 
-var csv = require('./jquery.csv.js');
-var citizens = csv.toObjects("../assets/new/test.csv");
-print(citizens);
+
+let layers={};
+layers["citizens"]=require('..assets/new/test.json');
 
 var heatmap = h337.create({
     container: domElement

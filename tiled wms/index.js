@@ -21,7 +21,7 @@ import {fromLonLat} from 'ol/proj';
 import jsts from 'jsts';
 import {createStringXY} from 'ol/coordinate';
 import {defaults as defaultControls} from 'ol/control';
-import 'buffer.js';
+//import 'buffer.js';
 
 
 
@@ -145,17 +145,7 @@ var map = new Map({
     
   })
 });
-map.addControl(new ol.control.LayerSwitcher());
-var projectionSelect = document.getElementById('projection');
-projectionSelect.addEventListener('change', function (event) {
-  mousePositionControl.setProjection(event.target.value);
-});
 
-var precisionInput = document.getElementById('precision');
-precisionInput.addEventListener('change', function (event) {
-  var format = createStringXY(event.target.valueAsNumber);
-  mousePositionControl.setCoordinateFormat(format);
-});
 
 
 

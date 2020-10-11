@@ -93869,6 +93869,7 @@ var _control = require("ol/control");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+//import 'buffer.js';
 var mousePositionControl = new _MousePosition.default({
   coordinateFormat: (0, _coordinate.createStringXY)(4),
   projection: 'EPSG:4326',
@@ -93921,8 +93922,6 @@ ps.invoke().then(output => {
 
 var layers = [new _Tile.default({
   source: new _OSM.default()
-}), new _layer.Vector({
-  source: source2
 }), new _Tile.default({
   title: 'Border',
   source: new _TileWMS.default({
@@ -93960,6 +93959,8 @@ var layers = [new _Tile.default({
     // Countries have transparency, so do not fade tiles:task2_1
     transition: 0
   })
+}), new _layer.Vector({
+  source: source2
 })];
 var map = new _Map.default({
   controls: (0, _control.defaults)().extend([mousePositionControl]),
@@ -93969,16 +93970,6 @@ var map = new _Map.default({
     center: (0, _proj.fromLonLat)([37.520193, 55.613960]),
     zoom: 13
   })
-});
-map.addControl(new ol.control.LayerSwitcher());
-var projectionSelect = document.getElementById('projection');
-projectionSelect.addEventListener('change', function (event) {
-  mousePositionControl.setProjection(event.target.value);
-});
-var precisionInput = document.getElementById('precision');
-precisionInput.addEventListener('change', function (event) {
-  var format = (0, _coordinate.createStringXY)(event.target.valueAsNumber);
-  mousePositionControl.setCoordinateFormat(format);
 });
 },{"ol/ol.css":"node_modules/ol/ol.css","ol/format/GeoJSON":"node_modules/ol/format/GeoJSON.js","ol/geom/LinearRing":"node_modules/ol/geom/LinearRing.js","ol/control/MousePosition":"node_modules/ol/control/MousePosition.js","ol/Map":"node_modules/ol/Map.js","ol/source/OSM":"node_modules/ol/source/OSM.js","ol/source/Vector":"node_modules/ol/source/Vector.js","ol/View":"node_modules/ol/View.js","ol/geom":"node_modules/ol/geom.js","ol/layer/Tile":"node_modules/ol/layer/Tile.js","ol/source/TileWMS":"node_modules/ol/source/TileWMS.js","ol/layer":"node_modules/ol/layer.js","ol/proj":"node_modules/ol/proj.js","jsts":"node_modules/jsts/dist/jsts.min.js","ol/coordinate":"node_modules/ol/coordinate.js","ol/control":"node_modules/ol/control.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -94008,7 +93999,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56823" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55111" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
