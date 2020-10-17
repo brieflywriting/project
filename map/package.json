@@ -1,0 +1,27 @@
+{
+  "name": "name",
+  "dependencies": {
+    "2gis-maps": "^3.6.1",
+    "data": "^0.6.1",
+    "heatmap.js": "^2.0.5",
+    "index.js": "0.0.3",
+    "jquery-csv": "^1.0.11",
+    "jsts": "^2.5.0",
+    "leaflet-heatmap": "^1.0.0",
+    "node-powershell": "^4.0.0",
+    "ol": "^6.3.1"
+  },
+  "devDependencies": {
+    "parcel": "^1.12.4",
+    "parcel-bundler": "^1.12.4"
+  },
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build --experimental-scope-hoisting --public-url . index.html"
+  },
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

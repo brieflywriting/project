@@ -1,0 +1,1 @@
+{"version":3,"sources":["buffer.js"],"names":[],"mappings":"AACA","file":"buffer.0fc684f2.js","sourceRoot":"..","sourcesContent":["\r\n/*\r\n function bfc() {\r\n    for (var i = 0; i < _citizensG.length; i++) {\r\n        _citizensG[i].setradius(document.getElementById(\"radius\").value);\r\n        _citizensG[i].redraw();\r\n    }}*/\r\n\r\n"]}
