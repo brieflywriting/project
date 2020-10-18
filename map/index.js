@@ -153,4 +153,3 @@ document.getElementById("layertogglebuffer").addEventListener("change", function
     map.addLayer(_poiG);
   }
 });
-

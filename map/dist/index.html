@@ -47,7 +47,7 @@
     }
 
     nav ul {
-      list-style:none;
+      list-style: none;
       margin: 0;
       padding: 0;
     }
@@ -150,6 +150,191 @@
       left: 50%;
       margin-right: -65%;
       transform: translate(65%, 50%)
+    }
+
+
+
+
+
+
+
+    /* Боковое навигационное меню */
+    .sidenavbar {
+      height: 70%;
+      /* 100% Full-height */
+      width: 0;
+      /* 0 ширина - изменить это с помощью JavaScript */
+      position: absolute;
+      /* Оставайтесь на месте */
+      z-index: 1;
+      /* Оставайтесь сверху */
+      top: 0;
+      /* Оставайтесь наверху */
+      left: 1%;
+      background-color: rgb(180, 178, 178);
+      /* Фон черный*/
+      overflow-x: hidden;
+      /* Отключить горизонтальную прокрутку */
+      padding-top: 20px;
+      /* Поместите контент в 60px сверху */
+      transition: 0.1s;
+      top: 15%;
+      bottom: 100px;
+
+      opacity: 0.9;
+      /* 0.5 второй эффект перехода слайда в боковой навигации */
+    }
+
+    /* Ссылки меню навигации */
+    .sidenavbar a {
+      padding: 8px 8px 8px 8px;
+      text-decoration: none;
+      font-size: 25px;
+      color: rgb(255, 255, 255);
+      display: block;
+      transition: 0.3s;
+    }
+
+    /* Когда вы наводите курсор мыши на навигационные ссылки, изменяется их цвет */
+    .sidenavbar a:hover {
+      color: #f1f1f1;
+    }
+
+    /* Положение и стиль кнопки закрытия (верхний правый угол) */
+    .sidenavbarb .closebtn {
+      position: absolute;
+      top: 0;
+      right: 50px;
+      font-size: 46px;
+      margin-left: 70px;
+      color: rgb(255, 255, 255);
+    }
+
+    /* Стиль содержимого страницы - используйте это, если вы хотите сдвинуть содержимое страницы вправо при открытии боковой навигации */
+    #main {
+      transition: margin-left .5s;
+      padding: 20px;
+    }
+
+    /* На экранах меньшего размера, где высота меньше 450px, измените стиль sidenav (меньше отступов и меньший размер шрифта) */
+    @media screen and (max-height: 450px) {
+      .sidenavbar {
+        padding-top: 15px;
+      }
+
+      .sidenavbar a {
+        font-size: 18px;
+      }
+
+    }
+
+
+
+
+
+
+
+
+
+    /* Стиль вкладки */
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: white;
+    }
+
+    /* Стиль кнопок, которые используются для открытия содержимого вкладки */
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: 0.3s;
+      color: black;
+      font-size: 16px;
+
+    }
+
+    /* Изменение цвета фона кнопок при наведении курсора */
+    .tab button:hover {
+      background-color: rgb(192, 182, 182);
+    }
+
+    /* Создание активного/текущего класса связи вкладки */
+    .tab button.active {
+      background-color: #ccc;
+    }
+
+    /* Стиль содержимого вкладки */
+    .tabcontent {
+      display: none;
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-top: none;
+      background-color: white;
+    }
+
+
+
+
+
+
+
+
+    /* Сетка: четыре одинаковых столбца, которые плавают рядом друг с другом */
+    .column {
+      float: left;
+      width: 25%;
+      padding: 10px;
+    }
+
+    /* Стиль изображения внутри сетки */
+    .column img {
+      opacity: 0.8;
+      cursor: pointer;
+    }
+
+    .column img:hover {
+      opacity: 1;
+    }
+
+    /* Очистить поплавки после столбцов */
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    /* Расширяющийся контейнер изображений (позиционирование необходимо для размещения кнопки закрытия и текста) */
+    .container {
+      position: relative;
+      display: none;
+    }
+
+    .container1 {
+      position: relative;
+      display: none;
+    }
+
+    /* Расширение текста изображения */
+    #imgtext {
+      position: absolute;
+      bottom: 15px;
+      left: 15px;
+      color: white;
+      font-size: 20px;
+    }
+
+    /* Закрываемая кнопка внутри изображения */
+    .closebtnsidebar {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      color: black;
+      font-size: 35px;
+      cursor: pointer;
     }</style>
 
 
@@ -157,16 +342,101 @@
 </head>
 
 <body>
-  <ul class="topmenu">
-    <li><a class="down">Layers</a>
-      <ul class="submenu">
-        <li><a>POI <input type="checkbox" id="layertogglepoi" name="POI" checked=""></a></li>
-        <li><a>Border <input type="checkbox" id="layertoggleborder" name="border" checked=""></a></li>
-        <li><a>Dwellings<input type="checkbox" id="layertoggledwellings" name="dwellings" checked=""></a></li>
-        <li><a>Heatmap<input type="checkbox" id="layertoggleheatmap" name="heatmap" checked=""></a></li>
-        <li><a>Buffer<input type="checkbox" id="layertogglebuffer" name="buffer" checked=""></a></li>
-        
-      </ul>
+  <div id="mySidebar" class="sidenavbar">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNavSidebar()">&times;</a>
+    <div class="tab">
+      <button class="tablinks" onclick="openCity(event, 'Dwellings')">Dwellings</button>
+      <button class="tablinks" onclick="openCity(event, 'Points of interest')">Points of interest</button>
+    </div>
+    <div id="Dwellings" class="tabcontent">
+      <div class="row">
+        <div class="column">
+          <img src="/family_ratio_histogram.7c2e13dc.png" alt="Семейный Коэф" style="width:100%" onclick="myFunction(this);">
+        </div>
+        <div class="column">
+          <img src="/amountofentrances_histogram.5a1799bc.png" alt="Подъезды" style="width:100%" onclick="myFunction(this);">
+        </div>
+        <div class="column">
+          <img src="/amountofflats_histogram.5ef5d315.png" alt="Квартиры" style="width:100%" onclick="myFunction(this);">
+        </div>
+        <div class="column">
+          <img src="/amountoffloors_histogram.6d45beaf.png" alt="Этажность" style="width:100%" onclick="myFunction(this);">
+        </div>
+        <div class="column">
+          <img src="/amountofpeople_histogram.4628671b.png" alt="Население" style="width:100%" onclick="myFunction(this);">
+        </div>
+        <div class="column">
+          <img src="/district_histogram.3f130056.png" alt="Районы" style="width:100%" onclick="myFunction(this);">
+        </div>
+        <div class="column">
+          <img src="/s_histogram.09b4cfd5.png" alt="Площадь" style="width:100%" onclick="myFunction(this);">
+        </div>
+        <div class="column">
+
+        </div>
+      </div>
+      <!-- Расширяющийся контейнер изображений -->
+      <div class="container">
+        <!-- Закрытое изображение -->
+        <span onclick="this.parentElement.style.display='none'" class="closebtnsidebar">&times;</span>
+
+        <!-- Развернутое изображение -->
+        <img id="expandedImg" style="width:100%">
+
+        <!-- Текст изображения -->
+        <div id="imgtext"></div>
+      </div>
+    </div>
+
+    <div id="Points of interest" class="tabcontent">
+      <h3>Click on histogram to increase it's size</h3>
+      <div class="row">
+        <div class="column">
+          <img src="/philial_amounthistogram.eebd099b.png" alt="Филиалы" style="width:100%" onclick="myFunction1(this);">
+        </div>
+        <div class="column">
+          <img src="/districtshistogram.3e8e2389.png" alt="Районы" style="width:100%" onclick="myFunction1(this);">
+        </div>
+        <div class="column">
+          <img src="/rubricshistogram.df940180.png" alt="Рубрики" style="width:100%" onclick="myFunction1(this);">
+        </div>
+        <div class="column">
+
+        </div>
+      </div>
+
+      <!-- Расширяющийся контейнер изображений -->
+      <div class="container1">
+        <!-- Закрытое изображение -->
+        <span onclick="this.parentElement.style.display='none'" class="closebtnsidebar">&times;</span>
+
+        <!-- Развернутое изображение -->
+        <img id="expandedImg1" style="width:100%">
+
+        <!-- Текст изображения -->
+        <div id="imgtext1"></div>
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+
+
+  <!-- Добавьте весь контент страницы внутри этого div, если вы хотите, чтобы боковая навигация выдвигала контент страницы вправо (не используется, если вы хотите, чтобы sidenav находился сверху страницы -->
+  <div id="main">
+
+    <ul class="topmenu">
+      <li><a class="down">Layers</a>
+        <ul class="submenu">
+          <li><a>POI <input type="checkbox" id="layertogglepoi" name="POI" checked=""></a></li>
+          <li><a>Border <input type="checkbox" id="layertoggleborder" name="border" checked=""></a></li>
+          <li><a>Dwellings<input type="checkbox" id="layertoggledwellings" name="dwellings" checked=""></a></li>
+          <li><a>Heatmap<input type="checkbox" id="layertoggleheatmap" name="heatmap" checked=""></a></li>
+          <li><a>Buffer<input type="checkbox" id="layertogglebuffer" name="buffer" checked=""></a></li>
+        </ul>
       </li>
       <li><a class="down">Buffer options</a>
         <ul class="submenu">
@@ -176,38 +446,86 @@
 
         </ul>
       </li>
-      <li><a class="down">Portfolio</a>
-        <ul class="submenu">
-          <li><a href="">Category</a></li>
-          <li><a href="">Author</a></li>
-          <li><a href="">Archive</a></li>
-          <li><a href="">Tags</a></li>
-        </ul>
+      <li><a class="down" onclick="openNavSideBar()">Open Histograms</a>
       </li>
-      <li><a href="">Contact</a></li>
-  </ul>
-  
-  <div id="heatmap" class="heatmap"></div>
-  <div id="map" class="map"></div>
+    </ul>
+    
+    <div id="map" class="map"></div>
 
-  <script>function openNav() {
+    <script>//#region sidebar
+function openNavSideBar() {
+  document.getElementById("mySidebar").style.width = "40%";
+  document.getElementById("main").style.marginLeft = "250px";
+}
+/* Установите ширину боковой навигации равной 0, и левое поле содержимого страницы - 0. */
+
+
+function closeNavSidebar() {
+  document.getElementById("mySidebar").style.width = "0";
+  document.getElementById("main").style.marginLeft = "0";
+} //#endregion
+
+
+function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
 }
 
 function closeNav() {
   document.getElementById("mySidenav").style.width = "0";
+} //#region sidebarinside
+
+
+function openCity(evt, cityName) {
+  // Объявить все переменные
+  var i, tabcontent, tablinks; // Получить все элементы с помощью class="tabcontent" и спрятать их
+
+  tabcontent = document.getElementsByClassName("tabcontent");
+
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  } // Получить все элементы с помощью class="tablinks" и удалить class "active"
+
+
+  tablinks = document.getElementsByClassName("tablinks");
+
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  } // Показать текущую вкладку и добавить "active" класс для кнопки, которая открыла вкладку
+
+
+  document.getElementById(cityName).style.display = "block";
+  evt.currentTarget.className += " active";
+} //#endregion
+
+
+function myFunction(imgs) {
+  // Получить развернутое изображение
+  var expandImg = document.getElementById("expandedImg"); // Получить текст изображения
+
+  var imgText = document.getElementById("imgtext"); // Используйте тот же src в развернутом изображении, что и изображение, нажатое на сетке
+
+  expandImg.src = imgs.src; // Используйте значение атрибута alt кликабельного изображения в качестве текста внутри развернутого изображения
+
+  imgText.innerHTML = imgs.alt; // Показать элемент контейнера (скрытый с помощью CSS)
+
+  expandImg.parentElement.style.display = "block";
+}
+
+function myFunction1(imgs) {
+  // Получить развернутое изображение
+  var expandImg = document.getElementById("expandedImg1"); // Получить текст изображения
+
+  var imgText = document.getElementById("imgtext1"); // Используйте тот же src в развернутом изображении, что и изображение, нажатое на сетке
+
+  expandImg.src = imgs.src; // Используйте значение атрибута alt кликабельного изображения в качестве текста внутри развернутого изображения
+
+  imgText.innerHTML = imgs.alt; // Показать элемент контейнера (скрытый с помощью CSS)
+
+  expandImg.parentElement.style.display = "block";
 }</script>
+    <script src="/map.e31bb0bc.js"></script>
 
-
-
-
-
-
-  <script src="/map.e31bb0bc.js"></script>
-
-
-
-
+  </div>
 </body>
 
 </html>
